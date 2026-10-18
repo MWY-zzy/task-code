@@ -1,0 +1,52 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+)
+
+func main() {
+	fmt.Println("我想到了一个一到一百的数，你快来猜猜吧！")
+
+	for {
+		target := rand.Intn(100) + 1
+		count := 0
+
+	guessLoop:
+		for {
+			fmt.Print("输入你猜的数：")
+			guess := readInt()
+			count++
+
+			switch {
+			case guess < target:
+				fmt.Println("小了，再大一点！")
+			case guess > target:
+				fmt.Println("大了，再小一点！")
+			case guess == target:
+				fmt.Printf("恭喜你答对了！答案就是 %d ! 你一共猜了 %d 次，输入 y 可以再次尝试。\n", target, count)
+				break guessLoop
+			}
+
+			if count >= 7 {
+				fmt.Printf("尝试机会用尽，游戏失败！正确答案是 %d，输入 y 可以再次尝试。\n", target)
+				break
+			}
+		}
+
+		var op string
+		fmt.Print("还想再次尝试吗？(y/n)：")
+		fmt.Scanln(&op)
+		if op != "y" && op != "Y" {
+			break
+		}
+	}
+
+	fmt.Println("再见，欢迎下次再来挑战！")
+}
+
+func readInt() int {
+	var n int
+	fmt.Scanln(&n)
+	return n
+}
