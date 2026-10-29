@@ -1,0 +1,60 @@
+package main
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+)
+
+type WordCounts struct {
+	Word  string
+	Count int
+}
+
+func main() {
+
+	fmt.Println("请输入一段英文（单词用空格隔开），然后回车：")
+
+	line := "the cat sat on the mat the cat"
+	fmt.Println("正在分析句子:", line)
+	fmt.Println("--------------------------")
+
+	line = strings.ToLower(line)
+
+	words := strings.Fields(line)
+
+	counts := make(map[string]int)
+	for _, word := range words {
+		counts[word]++
+	}
+
+	fmt.Printf("\n一共%d个单词，其中不同的单词%d种：\n", len(words), len(counts))
+
+	for word, n := range counts {
+		fmt.Printf("%-12s%d次\n", word, n)
+	}
+	maxCount := 0
+	maxWord := ""
+
+	for word, n := range counts {
+		if n > maxCount {
+			maxCount = n
+			maxWord = word
+		}
+	}
+	fmt.Printf("出现次数最多的单词是：%s (%d次)\n", maxWord, maxCount)
+	var sortedWords []WordCounts
+	for w, c := range counts {
+		sortedWords = append(sortedWords, WordCounts{Word: w, Count: c})
+	}
+	sort.Slice(sortedWords, func(i, j int) bool {
+		if sortedWords[i].Count != sortedWords[j].Count {
+			return sortedWords[i].Count > sortedWords[j].Count // 次数降序
+		}
+		return sortedWords[i].Word < sortedWords[j].Word // 并列按字母升序
+	})
+	fmt.Println("---热词排行榜---")
+	for i, item := range sortedWords {
+		fmt.Printf("第 %d名: %s (出现 %d次)\n", i+1, item.Word, item.Count)
+	}
+}
