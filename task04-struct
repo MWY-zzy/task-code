@@ -1,0 +1,148 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
+
+type Contact struct {
+	Name  string
+	Phone string
+	Email string
+}
+
+func (c Contact) String() string {
+	if c.Email == "" {
+		return fmt.Sprintf("%s - %s", c.Name, c.Phone)
+	}
+	return fmt.Sprintf("%s - %s (%s)", c.Name, c.Phone, c.Email)
+}
+
+type AddressBook struct {
+	contacts []Contact
+}
+
+func (b *AddressBook) index(name string) int {
+	for i, c := range b.contacts {
+		if c.Name == name {
+			return i
+		}
+	}
+	return -1
+}
+
+func (b *AddressBook) Add(name, phone, email string) error {
+	if name == "" {
+		return fmt.Errorf("姓名不能为空")
+	}
+	if b.index(name) >= 0 {
+		return fmt.Errorf("联系人已存在:%s", name)
+	}
+	b.contacts = append(b.contacts, Contact{Name: name, Phone: phone, Email: email})
+	return nil
+}
+
+func (b *AddressBook) Delete(name string) error {
+	i := b.index(name)
+	if i < 0 {
+		return fmt.Errorf("没有找到联系人:%s", name)
+	}
+	b.contacts = append(b.contacts[:i], b.contacts[i+1:]...)
+	return nil
+}
+
+func (b *AddressBook) Find(name string) (Contact, error) {
+	i := b.index(name)
+	if i < 0 {
+		return Contact{}, fmt.Errorf("没有找到联系人:%s", name)
+	}
+	return b.contacts[i], nil
+}
+
+func (b *AddressBook) List() {
+	if len(b.contacts) == 0 {
+		fmt.Println("(通讯录是空的)")
+		return
+	}
+	for i, c := range b.contacts {
+		fmt.Printf("%d. %s\n", i+1, c.String())
+	}
+}
+
+func readLine(r *bufio.Scanner, prompt string) (text string, ok bool) {
+	fmt.Print(prompt)
+	if !r.Scan() {
+		return "", false
+	}
+	return strings.TrimSpace(r.Text()), true
+}
+
+func main() {
+	book := &AddressBook{}
+	reader := bufio.NewScanner(os.Stdin)
+
+	fmt.Println("== 简易通讯录 ==")
+	for {
+		choice, ok := readLine(reader, "\n请选择:[1]添加 [2]列出 [3]查找 [4]删除 [5]退出 > ")
+		if !ok {
+			fmt.Println()
+			break
+		}
+
+		switch choice {
+		case "1":
+			name, ok := readLine(reader, "姓名:")
+			if !ok {
+				fmt.Println("\n输入已结束。")
+				return
+			}
+			phone, ok := readLine(reader, "电话:")
+			if !ok {
+				fmt.Println("\n输入已结束。")
+				return
+			}
+			email, ok := readLine(reader, "邮箱(可留空):")
+			if !ok {
+				fmt.Println("\n输入已结束。")
+				return
+			}
+			if err := book.Add(name, phone, email); err != nil {
+				fmt.Println("添加失败:", err)
+				continue
+			}
+			fmt.Println("已添加。")
+		case "2":
+			book.List()
+		case "3":
+			name, ok := readLine(reader, "要查找的姓名:")
+			if !ok {
+				fmt.Println("\n输入已结束。")
+				return
+			}
+			c, err := book.Find(name)
+			if err != nil {
+				fmt.Println("查找失败:", err)
+			} else {
+				fmt.Println("找到了:", c.String())
+			}
+		case "4":
+			name, ok := readLine(reader, "要删除的姓名:")
+			if !ok {
+				fmt.Println("\n输入已结束。")
+				return
+			}
+			if err := book.Delete(name); err != nil {
+				fmt.Println("删除失败:", err)
+				continue
+			}
+			fmt.Println("已删除。")
+		case "5":
+			fmt.Println("再见!")
+			return
+		default:
+			fmt.Println("无效选择,请输入 1-5。")
+		}
+	}
+}
